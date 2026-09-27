@@ -117,7 +117,8 @@ footer a{color:var(--muted);font-size:12px}
 .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;align-content:start}
 .tk{background:var(--stage-2);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;transition:border-color .3s,background .3s}
 .tk .hd{display:flex;align-items:center;gap:6px}
-.tk .rk{font-family:var(--mono);font-size:12px;color:var(--stage-muted);width:22px}
+.tk .rk{font-family:var(--display);font-size:18px;color:var(--stage-ink);min-width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);flex:none;font-variant-numeric:tabular-nums}
+.tk .rk.r1{background:#FFC93C;color:#231A00}.tk .rk.r2{background:#D9DDE6;color:#1B1E27}.tk .rk.r3{background:#D98E4E;color:#2A1300}
 .tk .nm{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tk .hit{font-family:var(--display);font-size:16px;color:var(--stage-muted)}
 .tk .nums{display:flex;gap:4px}
@@ -145,6 +146,39 @@ footer a{color:var(--muted);font-size:12px}
 .drum{font-family:var(--display);font-size:22px;min-height:1.3em;color:var(--stage-muted)}
 .res{white-space:pre-wrap;font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.06);border-radius:4px;padding:10px;max-width:520px;width:100%;color:var(--stage-ink)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
+
+/* ---- fit the draw stage to one desktop screen ---- */
+@media (min-width:821px) and (min-height:480px){
+  .stage{overflow:hidden;gap:1.4vh;padding-block:1.8vh}
+  .stage-top h2{font-size:clamp(22px,2.6vh,34px)}
+  .stage-main{grid-template-columns:auto 1fr;gap:clamp(16px,2vw,36px);min-height:0}
+  .left{justify-content:center;gap:1.4vh;min-height:0}
+  .machine{height:min(calc(100vh - 34vh), 44vw);width:auto;max-width:none;aspect-ratio:4/5;flex:none}
+  .caption{font-size:clamp(20px,3.2vh,40px)}
+  .tray{gap:.6vw;flex-wrap:nowrap}
+  .slot,.slot .ball{--s:clamp(34px,5.6vh,64px)}
+  .extras .ball{--s:clamp(26px,3.6vh,42px)}
+  .board{height:100%;min-height:0;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(6px,1vh,12px);align-content:stretch}
+  .tk{padding:calc(var(--ch,80px)*.1) calc(var(--ch,80px)*.16);gap:calc(var(--ch,80px)*.09);justify-content:center;min-height:0;overflow:hidden}
+  .tk .hd{gap:calc(var(--ch,80px)*.1)}
+  .tk .rk{font-size:clamp(15px,calc(var(--ch,80px)*.25),38px);min-width:clamp(26px,calc(var(--ch,80px)*.38),56px);height:clamp(26px,calc(var(--ch,80px)*.38),56px)}
+  .tk .nm{font-size:clamp(14px,calc(var(--ch,80px)*.22),32px)}
+  .tk .hit{font-size:clamp(15px,calc(var(--ch,80px)*.26),36px)}
+  .tk .nums{gap:calc(var(--ch,80px)*.05)}
+  .tk .nn{font-size:clamp(11px,calc(var(--ch,80px)*.17),24px);padding-block:calc(var(--ch,80px)*.035)}
+  .podium{justify-content:safe center;gap:2.2vh}
+  .pcards{max-width:min(1200px,94vw);flex-wrap:nowrap;gap:clamp(12px,1.6vw,28px)}
+  .pc{flex:1 1 0;max-width:none;padding:clamp(14px,2.4vh,28px);gap:1.2vh}
+  .pc .pm{font-size:clamp(13px,1.9vh,20px)}
+  .pc .pp{font-size:clamp(15px,2.6vh,28px)}
+  .pc .ball{--s:clamp(22px,3.4vh,40px)}
+  .res{max-height:16vh;overflow:auto}
+  .podium h3{font-size:clamp(28px,4.4vh,54px)}
+  .pc .pn{font-size:clamp(28px,4.4vh,54px)}
+  .pc .pl{font-size:clamp(20px,3vh,34px)}
+  .pc.first .pl{font-size:clamp(26px,3.8vh,44px)}
+  .drum{font-size:clamp(22px,3.4vh,40px)}
+}
 @media (prefers-reduced-motion:reduce){.slot .ball,.extras .ball{animation:none}.tk,.pc{transition:none}}
 .banner{border-radius:6px;padding:12px 14px;font-size:14px;background:var(--red-soft);color:var(--ink);border:1.5px solid var(--line)}
 .banner.ok{background:#E4F4EC;border-color:#BFE3D0}
@@ -676,9 +710,9 @@ const spot = document.createElement('div'); spot.className='spot'; document.body
 /* ball leaves the tube, grows in front of the machine, shows its number, then rolls into its slot */
 async function revealBall(n, from, target, big){
   if (skipping) return;
-  const S=120;
+  const S=Math.round(Math.min(240,Math.max(100,$('#mc').getBoundingClientRect().width*0.45)));
   const fly=document.createElement('div'); fly.className='flyball';
-  const b=ball(n); b.textContent=''; const num=document.createElement('span'); num.className='num'; num.textContent=n; num.style.opacity='0'; b.appendChild(num);
+  const b=ball(n,S); b.textContent=''; const num=document.createElement('span'); num.className='num'; num.textContent=n; num.style.opacity='0'; b.appendChild(num);
   fly.appendChild(b); document.body.appendChild(fly);
   const m=$('#mc').getBoundingClientRect();
   const center={x:m.left+m.width/2, y:m.top+m.height*.45};
@@ -712,6 +746,21 @@ async function revealBall(n, from, target, big){
 }
 
 const drawn = { main:new Set(), bonus:null, extras:new Set() };
+function fitBoard(){
+  const B=$('#board'); const n=B.children.length; if(!n) return;
+  if (!matchMedia('(min-width:821px) and (min-height:480px)').matches){ B.style.removeProperty('--cols'); B.style.removeProperty('--ch'); return; }
+  const W=B.clientWidth, Hh=B.clientHeight, gap=10; let best=4, bestS=0;
+  for (let c=2;c<=8;c++){
+    const rows=Math.ceil(n/c), cw=(W-gap*(c-1))/c, ch=(Hh-gap*(rows-1))/rows;
+    const s=Math.min(cw, ch*2.9);           // cards read best around 2.9:1
+    if (cw<150) continue;
+    if (s>bestS){ bestS=s; best=c; }
+  }
+  const rows=Math.ceil(n/best);
+  B.style.setProperty('--cols', best);
+  B.style.setProperty('--ch', Math.floor((Hh-gap*(rows-1))/rows)+'px');
+}
+window.addEventListener('resize', fitBoard);
 function buildBoard(players){
   const B=$('#board'); B.innerHTML='';
   players.forEach(p=>{
@@ -725,6 +774,7 @@ function buildBoard(players){
     p.nums.forEach(n=>{ const s=document.createElement('span'); s.className='nn'; s.dataset.n=n; s.textContent=pad(n); ns.appendChild(s); });
     d.append(hd,ns); B.appendChild(d);
   });
+  requestAnimationFrame(fitBoard);
 }
 function updateBoard(){
   const B=$('#board'); const cards=[...B.children];
@@ -741,7 +791,7 @@ function updateBoard(){
   cards.sort((a,b)=> final ? order.indexOf(a.dataset.id)-order.indexOf(b.dataset.id)
     : (b._s.m-a._s.m) || (b._s.b-a._s.b) || (ord(a)-ord(b)));
   const top = cards[0]._s.m;
-  cards.forEach((c,i)=>{ B.appendChild(c); c.querySelector('.rk').textContent = (i+1); c.classList.toggle('lead', top>0 && c._s.m===top && c._s.b===cards[0]._s.b); });
+  cards.forEach((c,i)=>{ B.appendChild(c); const rk=c.querySelector('.rk'); rk.textContent=(i+1); rk.className='rk'+(i<3 && c._s.m+c._s.b>0 ? ' r'+(i+1) : ''); c.classList.toggle('lead', top>0 && c._s.m===top && c._s.b===cards[0]._s.b); });
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches){
     cards.forEach(c=>{ const a=first.get(c), b=c.getBoundingClientRect(); const dx=a.left-b.left, dy=a.top-b.top;
       if(dx||dy){ c.style.transition='none'; c.style.transform=`translate(${dx}px,${dy}px)`; requestAnimationFrame(()=>{ c.style.transition='transform .6s ease'; c.style.transform=''; }); } });
